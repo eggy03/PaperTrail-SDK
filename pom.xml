@@ -5,14 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.eggy03</groupId>
-    <artifactId>PaperTrailSdk</artifactId>
+    <artifactId>papertrail-sdk</artifactId>
     <version>1.0.0</version>
 
     <properties>
         <maven.compiler.release>8</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <project.name>papertrail-sdk</project.name>
+        <project.name>PaperTrail SDK</project.name>
         <project.description>SDK for the PaperTrail API</project.description>
         <project.url>https://github.com/eggy03/papertrail-sdk</project.url>
 
