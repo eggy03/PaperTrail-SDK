@@ -1,19 +1,21 @@
 package io.github.eggy03.papertrail.sdk.entity;
 
 import lombok.Builder;
-import lombok.Value;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 
-@Value
+@RequiredArgsConstructor
+@Getter
 @Builder(toBuilder = true)
 public class MessageContentEntity {
 
     @Nullable
-    String messageId;
+    final String messageId;
 
     @Nullable
-    String messageContent;
+    final String messageContent;
 
     @Nullable
-    String authorId;
+    final String authorId;
 }
