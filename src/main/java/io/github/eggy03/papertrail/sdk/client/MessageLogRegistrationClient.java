@@ -1,11 +1,11 @@
 package io.github.eggy03.papertrail.sdk.client;
 
-import io.github.eggy03.papertrail.sdk.entity.MessageLogRegistrationEntity;
 import io.github.eggy03.papertrail.sdk.entity.ErrorEntity;
+import io.github.eggy03.papertrail.sdk.entity.MessageLogRegistrationEntity;
+import io.github.eggy03.papertrail.sdk.exception.ApiBaseUrlException;
 import io.github.eggy03.papertrail.sdk.http.HttpServiceEngine;
 import io.vavr.control.Either;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpHeaders;
@@ -14,14 +14,23 @@ import org.springframework.http.MediaType;
 
 import java.util.Optional;
 
-/**
- * Client for managing message log registrations via the PaperTrail API.
- */
-@RequiredArgsConstructor
 @Slf4j
 public class MessageLogRegistrationClient {
 
     private final String baseUrl;
+
+    /**
+     * Creates a new {@code MessageLogRegistrationClient}.
+     *
+     * @param baseUrl the base URL of the PaperTrail API (must not be {@code null} or blank)
+     * @throws ApiBaseUrlException if the base URL is {@code null} or empty
+     */
+    public MessageLogRegistrationClient(String baseUrl){
+        if(baseUrl==null || baseUrl.trim().isEmpty())
+            throw new ApiBaseUrlException("Base URL is null or empty");
+
+        this.baseUrl = baseUrl;
+    }
 
     /**
      * Registers a guild for message logging.
