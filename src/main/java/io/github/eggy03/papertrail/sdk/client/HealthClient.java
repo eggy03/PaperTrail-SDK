@@ -33,7 +33,7 @@ public class HealthClient {
 
         Either<ErrorEntity, HealthEntity> response = HttpServiceEngine.makeRequest(
                 HttpMethod.GET,
-                baseUrl + "/actuator/health",
+                baseUrl + "actuator/health",
                 headers,
                 HealthEntity.class
         );
