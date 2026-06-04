@@ -1,11 +1,13 @@
 package io.github.eggy03.papertrail.sdk.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.eggy03.papertrail.sdk.entity.AuditLogRegistrationEntity;
 import io.github.eggy03.papertrail.sdk.service.AuditLogRegistrationService;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -23,18 +25,20 @@ public final class AuditLogRegistrationClient {
     /**
      * Creates a new {@code AuditLogRegistrationClient} using the specified API base URL.
      *
-     * @param baseUrl the base URL of the API; must not be {@code null}
+     * @param baseUrl      the base URL of the API; must not be {@code null}
+     * @param objectMapper the Jackson Object Mapper to use
      * @throws NullPointerException if {@code baseUrl} is {@code null} (from Retrofit)
      */
-    public AuditLogRegistrationClient(@NonNull String baseUrl){
+    public AuditLogRegistrationClient(@NonNull String baseUrl, @NonNull ObjectMapper objectMapper) {
         this(new Retrofit.Builder()
                 .baseUrl(baseUrl)
+                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
                 .build()
                 .create(AuditLogRegistrationService.class)
         );
     }
 
-    AuditLogRegistrationClient (@NonNull AuditLogRegistrationService service){
+    AuditLogRegistrationClient(@NonNull AuditLogRegistrationService service) {
         this.service = Objects.requireNonNull(service, "service cannot be null");
     }
 
@@ -68,7 +72,7 @@ public final class AuditLogRegistrationClient {
      * @param guildId the Discord guild ID (must not be {@code null})
      * @return an {@link Optional} containing the registration if found, or empty if not registered
      */
-    public Optional<AuditLogRegistrationEntity> getRegisteredGuild (@NonNull String guildId) {
+    public Optional<AuditLogRegistrationEntity> getRegisteredGuild(@NonNull String guildId) {
 
         Objects.requireNonNull(guildId, "guildId cannot be null");
 
@@ -89,7 +93,7 @@ public final class AuditLogRegistrationClient {
      * @param guildId the Discord guild ID (must not be {@code null})
      * @return {@code true} if the deletion succeeded, {@code false} otherwise
      */
-    public boolean deleteRegisteredGuild (@NonNull String guildId) {
+    public boolean deleteRegisteredGuild(@NonNull String guildId) {
 
         Objects.requireNonNull(guildId, "guildId cannot be null");
 
