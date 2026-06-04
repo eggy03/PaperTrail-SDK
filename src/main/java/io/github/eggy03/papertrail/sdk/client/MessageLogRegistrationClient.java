@@ -1,43 +1,41 @@
 package io.github.eggy03.papertrail.sdk.client;
 
-import io.github.eggy03.papertrail.sdk.entity.ErrorEntity;
 import io.github.eggy03.papertrail.sdk.entity.MessageLogRegistrationEntity;
-import io.github.eggy03.papertrail.sdk.http.HttpServiceEngine;
-import io.vavr.control.Either;
+import io.github.eggy03.papertrail.sdk.service.MessageLogRegistrationService;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import retrofit2.Retrofit;
 
+import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Client for managing message log registrations via the PaperTrail API.
+ */
+@SuppressWarnings("java:S1192")
 public final class MessageLogRegistrationClient {
 
     private static final Logger log = LoggerFactory.getLogger(MessageLogRegistrationClient.class);
-
-    private final HttpServiceEngine engine;
+    private final @NonNull MessageLogRegistrationService service;
 
     /**
      * Creates a new {@code MessageLogRegistrationClient} using the specified API base URL.
      *
      * @param baseUrl the base URL of the API; must not be {@code null}
-     * @throws NullPointerException if {@code baseUrl} is {@code null}
+     * @throws NullPointerException if {@code baseUrl} is {@code null} (from Retrofit)
      */
     public MessageLogRegistrationClient(@NonNull String baseUrl){
-        this(new HttpServiceEngine(Objects.requireNonNull(baseUrl, "baseUrl cannot be null")));
+        this(new Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .build()
+                .create(MessageLogRegistrationService.class)
+        );
     }
 
-    /**
-     * Creates a new {@code MessageLogRegistrationClient} using the provided HTTP service engine.
-     *
-     * @param httpServiceEngine the HTTP service engine to use; must not be {@code null}
-     * @throws NullPointerException if {@code httpServiceEngine} is {@code null}
-     */
-    MessageLogRegistrationClient (@NonNull HttpServiceEngine httpServiceEngine){
-        this.engine = Objects.requireNonNull(httpServiceEngine, "httpServiceEngine cannot be null");
+    MessageLogRegistrationClient (@NonNull MessageLogRegistrationService service){
+        this.service = Objects.requireNonNull(service, "service cannot be null");
     }
 
     /**
@@ -52,23 +50,17 @@ public final class MessageLogRegistrationClient {
         Objects.requireNonNull(guildId, "guildId cannot be null");
         Objects.requireNonNull(channelId, "channelId cannot be null");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            return service
+                    .registerGuild(new MessageLogRegistrationEntity(guildId, channelId))
+                    .execute()
+                    .isSuccessful();
+        } catch (IOException e) {
+            log.warn("Failed to register guild for Message Logging [Guild ID={}]", guildId, e);
+        }
 
-        Either<ErrorEntity, MessageLogRegistrationEntity> responseBody = engine.makeRequestWithBody(
-                HttpMethod.POST,
-                "/api/v1/log/message",
-                headers,
-                new MessageLogRegistrationEntity(guildId, channelId),
-                MessageLogRegistrationEntity.class
-        );
-
-        // log in case of failure
-        responseBody.peekLeft(failure -> log.debug("Failed to register guild for message logging.\nAPI Response: {}", failure));
-
-        return responseBody.isRight();
+        return false;
     }
-
 
     /**
      * Retrieves the message log registration for a guild, if one exists.
@@ -80,21 +72,15 @@ public final class MessageLogRegistrationClient {
 
         Objects.requireNonNull(guildId, "guildId cannot be null");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            return Optional.ofNullable(service
+                    .getRegisteredGuild(guildId)
+                    .execute().body());
+        } catch (IOException e) {
+            log.warn("Failed to retrieve guild registered for Message Logging [Guild ID={}]", guildId, e);
+        }
 
-        Either<ErrorEntity, MessageLogRegistrationEntity> response = engine.makeRequest(
-                HttpMethod.GET,
-                "/api/v1/log/message/"+guildId,
-                headers,
-                MessageLogRegistrationEntity.class
-        );
-
-        // in case of error entity, log it
-        response.peekLeft(error -> log.debug("No guild of the ID: {} is registered.\nAPI Response: {}", guildId, error));
-
-        // in case of success, return the MessageLogRegistrationEntity object or empty optional
-        return response.map(Optional::of).getOrElse(Optional.empty());
+        return Optional.empty();
     }
 
     /**
@@ -107,18 +93,16 @@ public final class MessageLogRegistrationClient {
 
         Objects.requireNonNull(guildId, "guildId cannot be null");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            return service
+                    .deleteRegisteredGuild(guildId)
+                    .execute()
+                    .isSuccessful();
+        } catch (IOException e) {
+            log.warn("Failed to delete guild registered for Message Logging [Guild ID={}]", guildId, e);
+        }
 
-        Either<ErrorEntity, Void> responseBody = engine.makeRequest(
-                HttpMethod.DELETE,
-                "/api/v1/log/message/"+guildId,
-                headers,
-                Void.class
-        );
+        return false;
 
-        responseBody.peekLeft(failure -> log.debug("Failed to delete registered guild for message logging.\nAPI Response: {}", failure));
-
-        return responseBody.isRight();
     }
 }
