@@ -26,6 +26,16 @@ public final class MessageLogRegistrationClient {
      * Creates a new {@code MessageLogRegistrationClient} using the specified API base URL.
      *
      * @param baseUrl      the base URL of the API; must not be {@code null}
+     * @throws NullPointerException if {@code baseUrl} is {@code null} (from Retrofit)
+     */
+    public MessageLogRegistrationClient(@NonNull String baseUrl) {
+        this(baseUrl, new ObjectMapper());
+    }
+
+    /**
+     * Creates a new {@code MessageLogRegistrationClient} using the specified API base URL.
+     *
+     * @param baseUrl      the base URL of the API; must not be {@code null}
      * @param objectMapper the Jackson Object Mapper to use
      * @throws NullPointerException if {@code baseUrl} is {@code null} (from Retrofit)
      */
