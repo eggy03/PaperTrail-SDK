@@ -1,11 +1,13 @@
 package io.github.eggy03.papertrail.sdk.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.eggy03.papertrail.sdk.entity.MessageLogContentEntity;
 import io.github.eggy03.papertrail.sdk.service.MessageLogContentService;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -23,18 +25,20 @@ public final class MessageLogContentClient {
     /**
      * Creates a new {@code MessageLogContentClient} using the specified API base URL.
      *
-     * @param baseUrl the base URL of the API; must not be {@code null}
+     * @param baseUrl      the base URL of the API; must not be {@code null}
+     * @param objectMapper the Jackson Object Mapper to use
      * @throws NullPointerException if {@code baseUrl} is {@code null} (from Retrofit)
      */
-    public MessageLogContentClient(@NonNull String baseUrl){
+    public MessageLogContentClient(@NonNull String baseUrl, @NonNull ObjectMapper objectMapper) {
         this(new Retrofit.Builder()
                 .baseUrl(baseUrl)
+                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
                 .build()
                 .create(MessageLogContentService.class)
         );
     }
 
-    MessageLogContentClient (@NonNull MessageLogContentService service){
+    MessageLogContentClient(@NonNull MessageLogContentService service) {
         this.service = Objects.requireNonNull(service, "service cannot be null");
     }
 
@@ -66,7 +70,7 @@ public final class MessageLogContentClient {
      * @param messageId the Discord message ID (must not be {@code null})
      * @return an {@link Optional} containing the message content if found, or empty if not present
      */
-    public @NonNull Optional<MessageLogContentEntity> retrieveMessage (@NonNull String messageId) {
+    public @NonNull Optional<MessageLogContentEntity> retrieveMessage(@NonNull String messageId) {
 
         Objects.requireNonNull(messageId, "messageId cannot be null");
 
@@ -90,7 +94,7 @@ public final class MessageLogContentClient {
      * @param authorId       the Discord user ID of the message author (must not be {@code null})
      * @return {@code true} if the update succeeded, {@code false} otherwise
      */
-    public boolean updateMessage (@NonNull String messageId, @NonNull String messageContent, @NonNull String authorId) {
+    public boolean updateMessage(@NonNull String messageId, @NonNull String messageContent, @NonNull String authorId) {
 
         Objects.requireNonNull(messageId, "messageId cannot be null");
         Objects.requireNonNull(messageContent, "messageContent cannot be null");
@@ -114,7 +118,7 @@ public final class MessageLogContentClient {
      * @param messageId the Discord message ID (must not be {@code null})
      * @return {@code true} if the deletion succeeded, {@code false} otherwise
      */
-    public boolean deleteMessage (@NonNull String messageId) {
+    public boolean deleteMessage(@NonNull String messageId) {
 
         Objects.requireNonNull(messageId, "messageId cannot be null");
 

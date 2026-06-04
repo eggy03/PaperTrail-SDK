@@ -30,6 +30,7 @@
 
         <!-- dependencies version -->
         <jackson.annotation.version>2.21</jackson.annotation.version>
+        <jackson.core.version>2.21.4</jackson.core.version>
         <retrofit.version>3.0.0</retrofit.version>
         <jspecify.version>1.0.0</jspecify.version>
         <junit.jupiter.version>6.0.0</junit.jupiter.version>
@@ -55,8 +56,19 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.core.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.squareup.retrofit2</groupId>
             <artifactId>retrofit</artifactId>
+            <version>${retrofit.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>converter-jackson</artifactId>
             <version>${retrofit.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -85,6 +97,12 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <version>${mockito.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
             <version>${mockito.core.version}</version>
             <scope>test</scope>
         </dependency>
