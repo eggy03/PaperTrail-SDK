@@ -53,4 +53,16 @@ public final class AuditLogRegistrationEntity {
     public  @NonNull String getChannelId() {
         return channelId;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof AuditLogRegistrationEntity)) return false;
+        AuditLogRegistrationEntity that = (AuditLogRegistrationEntity) o;
+        return Objects.equals(getGuildId(), that.getGuildId()) && Objects.equals(getChannelId(), that.getChannelId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getGuildId(), getChannelId());
+    }
 }

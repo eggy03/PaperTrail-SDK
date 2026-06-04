@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jspecify.annotations.NonNull;
 
+import java.util.Objects;
+
 /**
  * Represents a structured error response returned by the PaperTrail API.
  */
@@ -90,5 +92,17 @@ public final class ErrorEntity {
      */
     public @NonNull String getPath() {
         return path;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ErrorEntity)) return false;
+        ErrorEntity that = (ErrorEntity) o;
+        return getStatus() == that.getStatus() && Objects.equals(getError(), that.getError()) && Objects.equals(getMessage(), that.getMessage()) && Objects.equals(getTimeStamp(), that.getTimeStamp()) && Objects.equals(getPath(), that.getPath());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getStatus(), getError(), getMessage(), getTimeStamp(), getPath());
     }
 }

@@ -66,4 +66,16 @@ public final class MessageLogContentEntity {
     public @NonNull String getAuthorId() {
         return authorId;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof MessageLogContentEntity)) return false;
+        MessageLogContentEntity that = (MessageLogContentEntity) o;
+        return Objects.equals(getMessageId(), that.getMessageId()) && Objects.equals(getMessageContent(), that.getMessageContent()) && Objects.equals(getAuthorId(), that.getAuthorId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getMessageId(), getMessageContent(), getAuthorId());
+    }
 }
