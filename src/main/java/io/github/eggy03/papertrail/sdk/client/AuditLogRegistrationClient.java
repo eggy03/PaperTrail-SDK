@@ -89,7 +89,8 @@ public final class AuditLogRegistrationClient {
         try {
             return Optional.ofNullable(service
                     .getRegisteredGuild(guildId)
-                    .execute().body());
+                    .execute()
+                    .body());
         } catch (IOException e) {
             log.warn("Failed to retrieve guild registered for Audit Logging [Guild ID={}]", guildId, e);
         }
