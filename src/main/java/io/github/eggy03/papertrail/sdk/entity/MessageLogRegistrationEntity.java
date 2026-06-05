@@ -50,7 +50,27 @@ public final class MessageLogRegistrationEntity {
     /**
      * The unique ID of the Discord channel where message logs will be posted.
      */
-    public  @NonNull String getChannelId() {
+    public @NonNull String getChannelId() {
         return channelId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof MessageLogRegistrationEntity)) return false;
+        MessageLogRegistrationEntity that = (MessageLogRegistrationEntity) o;
+        return Objects.equals(getGuildId(), that.getGuildId()) && Objects.equals(getChannelId(), that.getChannelId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getGuildId(), getChannelId());
+    }
+
+    @Override
+    public String toString() {
+        return "MessageLogRegistrationEntity{" +
+                "guildId='" + guildId + '\'' +
+                ", channelId='" + channelId + '\'' +
+                '}';
     }
 }

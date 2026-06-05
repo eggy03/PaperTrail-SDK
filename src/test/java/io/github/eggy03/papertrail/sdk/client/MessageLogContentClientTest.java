@@ -1,44 +1,54 @@
 package io.github.eggy03.papertrail.sdk.client;
 
-import io.github.eggy03.papertrail.sdk.entity.ErrorEntity;
 import io.github.eggy03.papertrail.sdk.entity.MessageLogContentEntity;
-import io.github.eggy03.papertrail.sdk.exception.ApiBaseUrlException;
-import io.github.eggy03.papertrail.sdk.http.HttpServiceEngine;
-import io.vavr.control.Either;
-import org.junit.jupiter.api.BeforeAll;
+import io.github.eggy03.papertrail.sdk.service.MessageLogContentService;
+import okhttp3.ResponseBody;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import retrofit2.Call;
+import retrofit2.Response;
+
+import java.io.IOException;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class MessageLogContentClientTest {
-
-    private static MessageLogContentClient client;
 
     private final String messageId = "123456789";
     private final String messageContent = "test";
     private final String authorId = "987654321";
 
-    static HttpServiceEngine mockEngine = mock(HttpServiceEngine.class);
+    private final MessageLogContentEntity dummyEntity = new MessageLogContentEntity(messageId, messageContent, authorId);
 
-    @BeforeAll
-    static void registerClient() {
-        client = new MessageLogContentClient(mockEngine);
+    @Mock
+    MessageLogContentService service;
+
+    MessageLogContentClient client;
+
+    @BeforeEach
+    void setClient() {
+        client = new MessageLogContentClient(service);
     }
 
     @ParameterizedTest
     @EmptySource
     void testConstructorEmptyBaseUrl(String baseUrl) {
-        assertThrows(ApiBaseUrlException.class, () -> new MessageLogContentClient(baseUrl));
+        assertThrows(IllegalArgumentException.class, () -> new MessageLogContentClient(baseUrl));
     }
 
     @ParameterizedTest
@@ -48,114 +58,193 @@ class MessageLogContentClientTest {
     }
 
     @Test
-    void testLogMessage_success() {
+    void logMessage_success_returnsTrue() throws IOException {
+        @SuppressWarnings("unchecked")
+        Call<MessageLogContentEntity> mockedCall = mock(Call.class);
 
-        MessageLogContentEntity responseBody = new MessageLogContentEntity(messageId, messageContent, authorId);
-        when(mockEngine.makeRequestWithBody(
-                eq(HttpMethod.POST),
-                eq("/api/v1/content/message"),
-                any(HttpHeaders.class),
-                any(MessageLogContentEntity.class),
-                eq(MessageLogContentEntity.class)
-        )).thenReturn(Either.right(responseBody));
+        Response<MessageLogContentEntity> successResponse = Response.success(dummyEntity);
+
+        when(service.logMessage(any(MessageLogContentEntity.class))).thenReturn(mockedCall);
+        when(mockedCall.execute()).thenReturn(successResponse);
 
         assertThat(client.logMessage(messageId, messageContent, authorId)).isTrue();
+
+        verify(service).logMessage(any(MessageLogContentEntity.class));
+        verifyNoMoreInteractions(mockedCall, service);
     }
 
     @Test
-    void testLogMessage_failure() {
+    void logMessage_error_returnsFalse() throws IOException {
 
-        when(mockEngine.makeRequestWithBody(
-                eq(HttpMethod.POST),
-                eq("/api/v1/content/message"),
-                any(HttpHeaders.class),
-                any(MessageLogContentEntity.class),
-                eq(MessageLogContentEntity.class)
-        )).thenReturn(Either.left(new ErrorEntity(0, "", "", "", "")));
+        @SuppressWarnings("unchecked")
+        Call<MessageLogContentEntity> mockedCall = mock(Call.class);
+
+        Response<MessageLogContentEntity> errorResponse = Response.error(400, ResponseBody.create("", null));
+
+        when(service.logMessage(any(MessageLogContentEntity.class))).thenReturn(mockedCall);
+        when(mockedCall.execute()).thenReturn(errorResponse);
 
         assertThat(client.logMessage(messageId, messageContent, authorId)).isFalse();
+
+        verify(service).logMessage(any(MessageLogContentEntity.class));
+        verifyNoMoreInteractions(mockedCall, service);
+
     }
 
     @Test
-    void testRetrieveMessage_success() {
+    void logMessage_throwsIOException_returnsFalse() throws IOException {
+        @SuppressWarnings("unchecked")
+        Call<MessageLogContentEntity> mockedCall = mock(Call.class);
 
-        MessageLogContentEntity responseBody = new MessageLogContentEntity(messageId, messageContent, authorId);
-        when(mockEngine.makeRequest(
-                eq(HttpMethod.GET),
-                eq("/api/v1/content/message/" + messageId),
-                any(HttpHeaders.class),
-                eq(MessageLogContentEntity.class)
-        )).thenReturn(Either.right(responseBody));
+        when(service.logMessage(any(MessageLogContentEntity.class))).thenReturn(mockedCall);
+        when(mockedCall.execute()).thenThrow(IOException.class);
 
-        assertThat(client.retrieveMessage(messageId)).isNotEmpty();
-        assertThat(client.retrieveMessage(messageId)).get().isEqualTo(responseBody);
+        assertThat(client.logMessage(messageId, messageContent, authorId)).isFalse();
+
+        verify(service).logMessage(any(MessageLogContentEntity.class));
+        verifyNoMoreInteractions(mockedCall, service);
     }
 
     @Test
-    void testRetrieveMessage_empty() {
+    void retrieveMessage_success_returnsOptional() throws IOException {
+        @SuppressWarnings("unchecked")
+        Call<MessageLogContentEntity> mockedCall = mock(Call.class);
+        @SuppressWarnings("unchecked")
+        Response<MessageLogContentEntity> mockedResponse = mock(Response.class);
 
-        when(mockEngine.makeRequest(
-                eq(HttpMethod.GET),
-                eq("/api/v1/content/message/" + messageId),
-                any(HttpHeaders.class),
-                eq(MessageLogContentEntity.class)
-        )).thenReturn(Either.left(new ErrorEntity(0, "", "", "", "")));
+        when(service.retrieveMessage(anyString())).thenReturn(mockedCall);
+        when(mockedCall.execute()).thenReturn(mockedResponse);
+        when(mockedResponse.body()).thenReturn(dummyEntity);
 
-        assertThat(client.retrieveMessage(messageId)).isEmpty();
+        Optional<MessageLogContentEntity> result = client.retrieveMessage(anyString());
+        assertThat(result).contains(dummyEntity);
+
+        verify(service).retrieveMessage(anyString());
+        verifyNoMoreInteractions(mockedCall, service);
     }
 
     @Test
-    void testUpdateMessage_success() {
+    void retrieveMessage_error_returnsEmptyOptional() throws IOException {
+        @SuppressWarnings("unchecked")
+        Call<MessageLogContentEntity> mockedCall = mock(Call.class);
 
-        MessageLogContentEntity responseBody = new MessageLogContentEntity(messageId, messageContent, authorId);
-        when(mockEngine.makeRequestWithBody(
-                eq(HttpMethod.PUT),
-                eq("/api/v1/content/message"),
-                any(HttpHeaders.class),
-                any(MessageLogContentEntity.class),
-                eq(MessageLogContentEntity.class)
-        )).thenReturn(Either.right(responseBody));
+        Response<MessageLogContentEntity> errorResponse = Response.error(400, ResponseBody.create("", null));
+
+        when(service.retrieveMessage(anyString())).thenReturn(mockedCall);
+        when(mockedCall.execute()).thenReturn(errorResponse);
+
+        Optional<MessageLogContentEntity> result = client.retrieveMessage(anyString());
+        assertThat(result).isEmpty();
+
+        verify(service).retrieveMessage(anyString());
+        verifyNoMoreInteractions(mockedCall, service);
+    }
+
+    @Test
+    void retrieveMessage_throwsIOException_returnsEmptyOptional() throws IOException {
+        @SuppressWarnings("unchecked")
+        Call<MessageLogContentEntity> mockedCall = mock(Call.class);
+
+        when(service.retrieveMessage(anyString())).thenReturn(mockedCall);
+        when(mockedCall.execute()).thenThrow(IOException.class);
+
+        Optional<MessageLogContentEntity> result = client.retrieveMessage(anyString());
+        assertThat(result).isEmpty();
+
+        verify(service).retrieveMessage(anyString());
+        verifyNoMoreInteractions(mockedCall, service);
+    }
+
+    @Test
+    void updateMessage_success_returnsTrue() throws IOException {
+        @SuppressWarnings("unchecked")
+        Call<MessageLogContentEntity> mockedCall = mock(Call.class);
+
+        Response<MessageLogContentEntity> successResponse = Response.success(dummyEntity);
+
+        when(service.updateMessage(any(MessageLogContentEntity.class))).thenReturn(mockedCall);
+        when(mockedCall.execute()).thenReturn(successResponse);
 
         assertThat(client.updateMessage(messageId, messageContent, authorId)).isTrue();
+
+        verify(service).updateMessage(any(MessageLogContentEntity.class));
+        verifyNoMoreInteractions(mockedCall, service);
     }
 
     @Test
-    void testUpdateMessage_failure() {
+    void updateMessage_error_returnsFalse() throws IOException {
+        @SuppressWarnings("unchecked")
+        Call<MessageLogContentEntity> mockedCall = mock(Call.class);
 
-        when(mockEngine.makeRequestWithBody(
-                eq(HttpMethod.PUT),
-                eq("/api/v1/content/message"),
-                any(HttpHeaders.class),
-                any(MessageLogContentEntity.class),
-                eq(MessageLogContentEntity.class)
-        )).thenReturn(Either.left(new ErrorEntity(0, "", "", "", "")));
+        Response<MessageLogContentEntity> errorResponse = Response.error(400, ResponseBody.create("", null));
+
+        when(service.updateMessage(any(MessageLogContentEntity.class))).thenReturn(mockedCall);
+        when(mockedCall.execute()).thenReturn(errorResponse);
 
         assertThat(client.updateMessage(messageId, messageContent, authorId)).isFalse();
+
+        verify(service).updateMessage(any(MessageLogContentEntity.class));
+        verifyNoMoreInteractions(mockedCall, service);
     }
 
     @Test
-    void testDeleteMessage_success() {
+    void updateMessage_throwsIOException_returnsFalse() throws IOException {
+        @SuppressWarnings("unchecked")
+        Call<MessageLogContentEntity> mockedCall = mock(Call.class);
 
-        when(mockEngine.makeRequest(
-                eq(HttpMethod.DELETE),
-                eq("/api/v1/content/message/" + messageId),
-                any(HttpHeaders.class),
-                eq(Void.class)
-        )).thenReturn(Either.right(null));
+        when(service.updateMessage(any(MessageLogContentEntity.class))).thenReturn(mockedCall);
+        when(mockedCall.execute()).thenThrow(IOException.class);
+
+        assertThat(client.updateMessage(messageId, messageContent, authorId)).isFalse();
+
+        verify(service).updateMessage(any(MessageLogContentEntity.class));
+        verifyNoMoreInteractions(mockedCall, service);
+    }
+
+    @Test
+    void deleteMessage_success_returnsTrue() throws IOException {
+        @SuppressWarnings("unchecked")
+        Call<Void> mockedCall = mock(Call.class);
+        @SuppressWarnings("unchecked")
+        Response<Void> successResponse = mock(Response.class);
+
+        when(service.deleteMessage(anyString())).thenReturn(mockedCall);
+        when(mockedCall.execute()).thenReturn(successResponse);
+        when(successResponse.isSuccessful()).thenReturn(true);
 
         assertThat(client.deleteMessage(messageId)).isTrue();
+
+        verify(service).deleteMessage(anyString());
+        verifyNoMoreInteractions(mockedCall, service);
     }
 
     @Test
-    void testDeleteMessage_failure() {
+    void deleteMessage_error_returnsFalse() throws IOException {
+        @SuppressWarnings("unchecked")
+        Call<Void> mockedCall = mock(Call.class);
 
-        when(mockEngine.makeRequest(
-                eq(HttpMethod.DELETE),
-                eq("/api/v1/content/message/" + messageId),
-                any(HttpHeaders.class),
-                eq(Void.class)
-        )).thenReturn(Either.left(new ErrorEntity(0, "", "", "", "")));
+        Response<Void> errorResponse = Response.error(400, ResponseBody.create("", null));
+
+        when(service.deleteMessage(anyString())).thenReturn(mockedCall);
+        when(mockedCall.execute()).thenReturn(errorResponse);
 
         assertThat(client.deleteMessage(messageId)).isFalse();
+
+        verify(service).deleteMessage(anyString());
+        verifyNoMoreInteractions(mockedCall, service);
+    }
+
+    @Test
+    void deleteMessage_throwsIOException_returnsFalse() throws IOException {
+        @SuppressWarnings("unchecked")
+        Call<Void> mockedCall = mock(Call.class);
+
+        when(service.deleteMessage(anyString())).thenReturn(mockedCall);
+        when(mockedCall.execute()).thenThrow(IOException.class);
+
+        assertThat(client.deleteMessage(messageId)).isFalse();
+
+        verify(service).deleteMessage(anyString());
+        verifyNoMoreInteractions(mockedCall, service);
     }
 }

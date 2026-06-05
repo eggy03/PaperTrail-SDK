@@ -1,46 +1,58 @@
 package io.github.eggy03.papertrail.sdk.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.eggy03.papertrail.sdk.entity.AuditLogRegistrationEntity;
-import io.github.eggy03.papertrail.sdk.entity.ErrorEntity;
-import io.github.eggy03.papertrail.sdk.http.HttpServiceEngine;
-import io.vavr.control.Either;
+import io.github.eggy03.papertrail.sdk.service.AuditLogRegistrationService;
+import okhttp3.OkHttpClient;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
+import java.io.IOException;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
  * Client for managing audit log registrations via the PaperTrail API.
  */
+@SuppressWarnings("java:S1192")
 public final class AuditLogRegistrationClient {
 
     private static final Logger log = LoggerFactory.getLogger(AuditLogRegistrationClient.class);
-
-    private final HttpServiceEngine engine;
+    private final @NonNull AuditLogRegistrationService service;
 
     /**
      * Creates a new {@code AuditLogRegistrationClient} using the specified API base URL.
      *
      * @param baseUrl the base URL of the API; must not be {@code null}
-     * @throws NullPointerException if {@code baseUrl} is {@code null}
+     * @throws NullPointerException if {@code baseUrl} is {@code null} (from Retrofit)
      */
-    public AuditLogRegistrationClient(@NonNull String baseUrl){
-        this(new HttpServiceEngine(Objects.requireNonNull(baseUrl, "baseUrl cannot be null")));
+    public AuditLogRegistrationClient(@NonNull String baseUrl) {
+        this(baseUrl, new ObjectMapper());
     }
 
     /**
-     * Creates a new {@code AuditLogRegistrationClient} using the provided HTTP service engine.
+     * Creates a new {@code AuditLogRegistrationClient} using the specified API base URL.
      *
-     * @param httpServiceEngine the HTTP service engine to use; must not be {@code null}
-     * @throws NullPointerException if {@code httpServiceEngine} is {@code null}
+     * @param baseUrl      the base URL of the API; must not be {@code null}
+     * @param objectMapper the Jackson Object Mapper to use
+     * @throws NullPointerException if {@code baseUrl} is {@code null} (from Retrofit)
      */
-    AuditLogRegistrationClient (@NonNull HttpServiceEngine httpServiceEngine){
-        this.engine = Objects.requireNonNull(httpServiceEngine, "httpServiceEngine cannot be null");
+    public AuditLogRegistrationClient(@NonNull String baseUrl, @NonNull ObjectMapper objectMapper) {
+        this(new Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .client(new OkHttpClient.Builder().callTimeout(Duration.ofSeconds(60)).readTimeout(Duration.ofSeconds(30)).writeTimeout(Duration.ofSeconds(30)).build())
+                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+                .build()
+                .create(AuditLogRegistrationService.class)
+        );
+    }
+
+    AuditLogRegistrationClient(@NonNull AuditLogRegistrationService service) {
+        this.service = Objects.requireNonNull(service, "service cannot be null");
     }
 
     /**
@@ -55,21 +67,16 @@ public final class AuditLogRegistrationClient {
         Objects.requireNonNull(guildId, "guildId cannot be null");
         Objects.requireNonNull(channelId, "channelId cannot be null");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            return service
+                    .registerGuild(new AuditLogRegistrationEntity(guildId, channelId))
+                    .execute()
+                    .isSuccessful();
+        } catch (IOException e) {
+            log.warn("Failed to register guild for Audit Logging [Guild ID={}]", guildId, e);
+        }
 
-        Either<ErrorEntity, AuditLogRegistrationEntity> responseBody = engine.makeRequestWithBody(
-                HttpMethod.POST,
-                "/api/v1/log/audit",
-                headers,
-                new AuditLogRegistrationEntity(guildId, channelId),
-                AuditLogRegistrationEntity.class
-        );
-
-        // log in case of failure
-        responseBody.peekLeft(failure -> log.debug("Failed to register guild for audit logging.\nAPI Response: {}", failure));
-
-        return responseBody.isRight();
+        return false;
     }
 
     /**
@@ -78,25 +85,20 @@ public final class AuditLogRegistrationClient {
      * @param guildId the Discord guild ID (must not be {@code null})
      * @return an {@link Optional} containing the registration if found, or empty if not registered
      */
-    public Optional<AuditLogRegistrationEntity> getRegisteredGuild (@NonNull String guildId) {
+    public Optional<AuditLogRegistrationEntity> getRegisteredGuild(@NonNull String guildId) {
 
         Objects.requireNonNull(guildId, "guildId cannot be null");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            return Optional.ofNullable(service
+                    .getRegisteredGuild(guildId)
+                    .execute()
+                    .body());
+        } catch (IOException e) {
+            log.warn("Failed to retrieve guild registered for Audit Logging [Guild ID={}]", guildId, e);
+        }
 
-        Either<ErrorEntity, AuditLogRegistrationEntity> response = engine.makeRequest(
-                HttpMethod.GET,
-                "/api/v1/log/audit/"+guildId,
-                headers,
-                AuditLogRegistrationEntity.class
-        );
-
-        // in case of error entity, log it
-        response.peekLeft(error -> log.debug("No guild of the ID: {} is registered.\nAPI Response: {}", guildId, error));
-
-        // in case of success, return the AuditLogRegistrationEntity object or empty optional
-        return response.map(Optional::of).getOrElse(Optional.empty());
+        return Optional.empty();
     }
 
     /**
@@ -105,22 +107,20 @@ public final class AuditLogRegistrationClient {
      * @param guildId the Discord guild ID (must not be {@code null})
      * @return {@code true} if the deletion succeeded, {@code false} otherwise
      */
-    public boolean deleteRegisteredGuild (@NonNull String guildId) {
+    public boolean deleteRegisteredGuild(@NonNull String guildId) {
 
         Objects.requireNonNull(guildId, "guildId cannot be null");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            return service
+                    .deleteRegisteredGuild(guildId)
+                    .execute()
+                    .isSuccessful();
+        } catch (IOException e) {
+            log.warn("Failed to delete guild registered for Audit Logging [Guild ID={}]", guildId, e);
+        }
 
-        Either<ErrorEntity, Void> responseBody = engine.makeRequest(
-                HttpMethod.DELETE,
-                "/api/v1/log/audit/"+guildId,
-                headers,
-                Void.class
-        );
+        return false;
 
-        responseBody.peekLeft(failure -> log.debug("Failed to delete registered guild for audit logging.\nAPI Response: {}", failure));
-
-        return responseBody.isRight();
     }
 }

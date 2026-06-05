@@ -1,46 +1,58 @@
 package io.github.eggy03.papertrail.sdk.client;
 
-import io.github.eggy03.papertrail.sdk.entity.ErrorEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.eggy03.papertrail.sdk.entity.MessageLogContentEntity;
-import io.github.eggy03.papertrail.sdk.http.HttpServiceEngine;
-import io.vavr.control.Either;
+import io.github.eggy03.papertrail.sdk.service.MessageLogContentService;
+import okhttp3.OkHttpClient;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
+import java.io.IOException;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
  * Client for managing stored message content via the PaperTrail API.
  */
+@SuppressWarnings("java:S1192")
 public final class MessageLogContentClient {
 
     private static final Logger log = LoggerFactory.getLogger(MessageLogContentClient.class);
-
-    private final HttpServiceEngine engine;
+    private final @NonNull MessageLogContentService service;
 
     /**
      * Creates a new {@code MessageLogContentClient} using the specified API base URL.
      *
      * @param baseUrl the base URL of the API; must not be {@code null}
-     * @throws NullPointerException if {@code baseUrl} is {@code null}
+     * @throws NullPointerException if {@code baseUrl} is {@code null} (from Retrofit)
      */
-    public MessageLogContentClient(@NonNull String baseUrl){
-        this(new HttpServiceEngine(Objects.requireNonNull(baseUrl, "baseUrl cannot be null")));
+    public MessageLogContentClient(@NonNull String baseUrl) {
+        this(baseUrl, new ObjectMapper());
     }
 
     /**
-     * Creates a new {@code MessageLogContentClient} using the provided HTTP service engine.
+     * Creates a new {@code MessageLogContentClient} using the specified API base URL.
      *
-     * @param httpServiceEngine the HTTP service engine to use; must not be {@code null}
-     * @throws NullPointerException if {@code httpServiceEngine} is {@code null}
+     * @param baseUrl      the base URL of the API; must not be {@code null}
+     * @param objectMapper the Jackson Object Mapper to use
+     * @throws NullPointerException if {@code baseUrl} is {@code null} (from Retrofit)
      */
-    MessageLogContentClient (@NonNull HttpServiceEngine httpServiceEngine){
-        this.engine = Objects.requireNonNull(httpServiceEngine, "httpServiceEngine cannot be null");
+    public MessageLogContentClient(@NonNull String baseUrl, @NonNull ObjectMapper objectMapper) {
+        this(new Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .client(new OkHttpClient.Builder().callTimeout(Duration.ofSeconds(60)).readTimeout(Duration.ofSeconds(30)).writeTimeout(Duration.ofSeconds(30)).build())
+                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+                .build()
+                .create(MessageLogContentService.class)
+        );
+    }
+
+    MessageLogContentClient(@NonNull MessageLogContentService service) {
+        this.service = Objects.requireNonNull(service, "service cannot be null");
     }
 
     /**
@@ -53,25 +65,16 @@ public final class MessageLogContentClient {
      */
     public boolean logMessage(@NonNull String messageId, @NonNull String messageContent, @NonNull String authorId) {
 
-        Objects.requireNonNull(messageId, "messageId cannot be null");
-        Objects.requireNonNull(messageContent, "messageContent cannot be null");
-        Objects.requireNonNull(authorId, "authorId cannot be null");
+        try {
+            return service
+                    .logMessage(new MessageLogContentEntity(messageId, messageContent, authorId))
+                    .execute()
+                    .isSuccessful();
+        } catch (IOException e) {
+            log.warn("Failed to log message [id={}]", messageId, e);
+        }
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        Either<ErrorEntity, MessageLogContentEntity> responseBody = engine.makeRequestWithBody(
-                HttpMethod.POST,
-                "/api/v1/content/message",
-                headers,
-                new MessageLogContentEntity(messageId, messageContent, authorId),
-                MessageLogContentEntity.class
-        );
-
-        // log in case of failure
-        responseBody.peekLeft(failure -> log.debug("Failed to log message with ID {}.\nAPI Response: {}", messageId, failure));
-
-        return responseBody.isRight();
+        return false;
     }
 
     /**
@@ -80,25 +83,20 @@ public final class MessageLogContentClient {
      * @param messageId the Discord message ID (must not be {@code null})
      * @return an {@link Optional} containing the message content if found, or empty if not present
      */
-    public Optional<MessageLogContentEntity> retrieveMessage (@NonNull String messageId) {
+    public @NonNull Optional<MessageLogContentEntity> retrieveMessage(@NonNull String messageId) {
 
         Objects.requireNonNull(messageId, "messageId cannot be null");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            return Optional.ofNullable(service
+                    .retrieveMessage(messageId)
+                    .execute()
+                    .body());
+        } catch (IOException e) {
+            log.warn("Failed to retrieve message [id={}]", messageId, e);
+        }
 
-        Either<ErrorEntity, MessageLogContentEntity> response = engine.makeRequest(
-                HttpMethod.GET,
-                "/api/v1/content/message/"+messageId,
-                headers,
-                MessageLogContentEntity.class
-        );
-
-        // in case of error entity, log it
-        response.peekLeft(error -> log.debug("Message of ID {} could not be retrieved.\nAPI Response: {}", messageId, error));
-
-        // in case of success, return the never null MessageLogContentEntity object or empty optional
-        return response.map(Optional::of).getOrElse(Optional.empty());
+        return Optional.empty();
     }
 
     /**
@@ -109,26 +107,22 @@ public final class MessageLogContentClient {
      * @param authorId       the Discord user ID of the message author (must not be {@code null})
      * @return {@code true} if the update succeeded, {@code false} otherwise
      */
-    public boolean updateMessage (@NonNull String messageId, @NonNull String messageContent, @NonNull String authorId) {
+    public boolean updateMessage(@NonNull String messageId, @NonNull String messageContent, @NonNull String authorId) {
 
         Objects.requireNonNull(messageId, "messageId cannot be null");
         Objects.requireNonNull(messageContent, "messageContent cannot be null");
         Objects.requireNonNull(authorId, "authorId cannot be null");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            return service
+                    .updateMessage(new MessageLogContentEntity(messageId, messageContent, authorId))
+                    .execute()
+                    .isSuccessful();
+        } catch (IOException e) {
+            log.warn("Failed to update message [id={}]", messageId, e);
+        }
 
-        Either<ErrorEntity, MessageLogContentEntity> responseBody = engine.makeRequestWithBody(
-                HttpMethod.PUT,
-                "/api/v1/content/message",
-                headers,
-                new MessageLogContentEntity(messageId, messageContent, authorId),
-                MessageLogContentEntity.class
-        );
-
-        responseBody.peekLeft(failure -> log.debug("Failed to update message with ID {}.\nAPI Response: {}", messageId, failure));
-
-        return responseBody.isRight();
+        return false;
     }
 
     /**
@@ -137,22 +131,19 @@ public final class MessageLogContentClient {
      * @param messageId the Discord message ID (must not be {@code null})
      * @return {@code true} if the deletion succeeded, {@code false} otherwise
      */
-    public boolean deleteMessage (@NonNull String messageId) {
+    public boolean deleteMessage(@NonNull String messageId) {
 
         Objects.requireNonNull(messageId, "messageId cannot be null");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            return service
+                    .deleteMessage(messageId)
+                    .execute()
+                    .isSuccessful();
+        } catch (IOException e) {
+            log.warn("Failed to delete message [id={}]", messageId, e);
+        }
 
-        Either<ErrorEntity, Void> responseBody = engine.makeRequest(
-                HttpMethod.DELETE,
-                "/api/v1/content/message/"+messageId,
-                headers,
-                Void.class
-        );
-
-        responseBody.peekLeft(failure -> log.debug("Failed to delete message with ID {}.\nAPI Response: {}", messageId, failure));
-
-        return responseBody.isRight();
+        return false;
     }
 }
