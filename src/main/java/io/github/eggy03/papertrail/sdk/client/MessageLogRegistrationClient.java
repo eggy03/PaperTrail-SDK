@@ -3,6 +3,7 @@ package io.github.eggy03.papertrail.sdk.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.eggy03.papertrail.sdk.entity.MessageLogRegistrationEntity;
 import io.github.eggy03.papertrail.sdk.service.MessageLogRegistrationService;
+import okhttp3.OkHttpClient;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -42,6 +44,7 @@ public final class MessageLogRegistrationClient {
     public MessageLogRegistrationClient(@NonNull String baseUrl, @NonNull ObjectMapper objectMapper) {
         this(new Retrofit.Builder()
                 .baseUrl(baseUrl)
+                .client(new OkHttpClient.Builder().callTimeout(Duration.ofSeconds(60)).readTimeout(Duration.ofSeconds(30)).writeTimeout(Duration.ofSeconds(30)).build())
                 .addConverterFactory(JacksonConverterFactory.create(objectMapper))
                 .build()
                 .create(MessageLogRegistrationService.class)
