@@ -15,8 +15,8 @@ public interface AuditLogRegistrationService {
     Call<AuditLogRegistrationEntity> registerGuild(@Body AuditLogRegistrationEntity requestBody);
 
     @GET("api/v1/log/audit/{guildId}")
-    Call<AuditLogRegistrationEntity> getRegisteredGuild(@Path ("guildId") @NonNull String guildId);
+    Call<AuditLogRegistrationEntity> getRegisteredGuild(@Path("guildId") @NonNull String guildId);
 
     @DELETE("api/v1/log/audit/{guildId}")
-    Call<Void> deleteRegisteredGuild(@Path ("guildId") @NonNull String guildId);
+    Call<Void> deleteRegisteredGuild(@Path("guildId") @NonNull String guildId);
 }

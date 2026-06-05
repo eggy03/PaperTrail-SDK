@@ -50,7 +50,7 @@ public final class AuditLogRegistrationEntity {
     /**
      * The unique ID of the Discord channel where audit logs will be posted.
      */
-    public  @NonNull String getChannelId() {
+    public @NonNull String getChannelId() {
         return channelId;
     }
 

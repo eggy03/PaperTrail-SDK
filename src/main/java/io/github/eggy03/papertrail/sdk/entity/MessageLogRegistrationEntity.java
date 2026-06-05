@@ -50,7 +50,7 @@ public final class MessageLogRegistrationEntity {
     /**
      * The unique ID of the Discord channel where message logs will be posted.
      */
-    public  @NonNull String getChannelId() {
+    public @NonNull String getChannelId() {
         return channelId;
     }
 

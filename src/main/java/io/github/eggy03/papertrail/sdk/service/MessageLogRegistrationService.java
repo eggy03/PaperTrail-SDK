@@ -15,8 +15,8 @@ public interface MessageLogRegistrationService {
     Call<MessageLogRegistrationEntity> registerGuild(@Body MessageLogRegistrationEntity requestBody);
 
     @GET("api/v1/log/message/{guildId}")
-    Call<MessageLogRegistrationEntity> getRegisteredGuild(@Path ("guildId") @NonNull String guildId);
+    Call<MessageLogRegistrationEntity> getRegisteredGuild(@Path("guildId") @NonNull String guildId);
 
     @DELETE("api/v1/log/message/{guildId}")
-    Call<Void> deleteRegisteredGuild(@Path ("guildId") @NonNull String guildId);
+    Call<Void> deleteRegisteredGuild(@Path("guildId") @NonNull String guildId);
 }

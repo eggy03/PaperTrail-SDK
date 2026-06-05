@@ -25,7 +25,7 @@ public final class AuditLogRegistrationClient {
     /**
      * Creates a new {@code AuditLogRegistrationClient} using the specified API base URL.
      *
-     * @param baseUrl      the base URL of the API; must not be {@code null}
+     * @param baseUrl the base URL of the API; must not be {@code null}
      * @throws NullPointerException if {@code baseUrl} is {@code null} (from Retrofit)
      */
     public AuditLogRegistrationClient(@NonNull String baseUrl) {

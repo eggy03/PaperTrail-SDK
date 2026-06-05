@@ -16,11 +16,11 @@ public interface MessageLogContentService {
     Call<MessageLogContentEntity> logMessage(@Body MessageLogContentEntity requestBody);
 
     @GET("api/v1/content/message/{messageId}")
-    Call<MessageLogContentEntity> retrieveMessage(@Path ("messageId") @NonNull String messageId);
+    Call<MessageLogContentEntity> retrieveMessage(@Path("messageId") @NonNull String messageId);
 
     @PUT("api/v1/content/message")
     Call<MessageLogContentEntity> updateMessage(@Body MessageLogContentEntity requestBody);
 
     @DELETE("api/v1/content/message/{messageId}")
-    Call<Void> deleteMessage(@Path ("messageId") @NonNull String messageId);
+    Call<Void> deleteMessage(@Path("messageId") @NonNull String messageId);
 }

@@ -127,12 +127,12 @@ class MessageLogContentClientTest {
     void retrieveMessage_error_returnsEmptyOptional() throws IOException {
         @SuppressWarnings("unchecked")
         Call<MessageLogContentEntity> mockedCall = mock(Call.class);
-        
+
         Response<MessageLogContentEntity> errorResponse = Response.error(400, ResponseBody.create("", null));
 
         when(service.retrieveMessage(anyString())).thenReturn(mockedCall);
         when(mockedCall.execute()).thenReturn(errorResponse);
-        
+
         Optional<MessageLogContentEntity> result = client.retrieveMessage(anyString());
         assertThat(result).isEmpty();
 
