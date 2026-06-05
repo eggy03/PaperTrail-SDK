@@ -105,4 +105,15 @@ public final class ErrorEntity {
     public int hashCode() {
         return Objects.hash(getStatus(), getError(), getMessage(), getTimeStamp(), getPath());
     }
+
+    @Override
+    public String toString() {
+        return "ErrorEntity{" +
+                "status=" + status +
+                ", error='" + error + '\'' +
+                ", message='" + message + '\'' +
+                ", timeStamp='" + timeStamp + '\'' +
+                ", path='" + path + '\'' +
+                '}';
+    }
 }

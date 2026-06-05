@@ -78,4 +78,13 @@ public final class MessageLogContentEntity {
     public int hashCode() {
         return Objects.hash(getMessageId(), getMessageContent(), getAuthorId());
     }
+
+    @Override
+    public String toString() {
+        return "MessageLogContentEntity{" +
+                "messageId='" + messageId + '\'' +
+                ", messageContent='" + messageContent + '\'' +
+                ", authorId='" + authorId + '\'' +
+                '}';
+    }
 }

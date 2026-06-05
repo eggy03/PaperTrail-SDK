@@ -65,4 +65,12 @@ public final class AuditLogRegistrationEntity {
     public int hashCode() {
         return Objects.hash(getGuildId(), getChannelId());
     }
+
+    @Override
+    public String toString() {
+        return "AuditLogRegistrationEntity{" +
+                "guildId='" + guildId + '\'' +
+                ", channelId='" + channelId + '\'' +
+                '}';
+    }
 }

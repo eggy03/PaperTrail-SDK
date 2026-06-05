@@ -65,4 +65,12 @@ public final class MessageLogRegistrationEntity {
     public int hashCode() {
         return Objects.hash(getGuildId(), getChannelId());
     }
+
+    @Override
+    public String toString() {
+        return "MessageLogRegistrationEntity{" +
+                "guildId='" + guildId + '\'' +
+                ", channelId='" + channelId + '\'' +
+                '}';
+    }
 }
