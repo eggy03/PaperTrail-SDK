@@ -22,5 +22,5 @@ public interface MessageLogContentService {
     Call<MessageLogContentEntity> updateMessage(@Body MessageLogContentEntity requestBody);
 
     @DELETE("api/v1/content/message/{messageId}")
-    Call<MessageLogContentEntity> deleteMessage(@Path ("messageId") @NonNull String messageId);
+    Call<Void> deleteMessage(@Path ("messageId") @NonNull String messageId);
 }
