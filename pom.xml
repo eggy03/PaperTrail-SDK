@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.eggy03</groupId>
     <artifactId>papertrail-sdk</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 
     <properties>
         <maven.compiler.release>8</maven.compiler.release>
@@ -17,7 +17,8 @@
         <project.url>https://github.com/eggy03/papertrail-sdk</project.url>
 
         <project.license.name>The MIT License</project.license.name>
-        <project.license.url>https://raw.githubusercontent.com/eggy03/papertrail-sdk/refs/heads/master/LICENSE</project.license.url>
+        <project.license.url>https://raw.githubusercontent.com/eggy03/papertrail-sdk/refs/heads/master/LICENSE
+        </project.license.url>
 
         <project.developer.id>Egg-03</project.developer.id>
         <project.developer.name>Sayan Bhattacharjee</project.developer.name>
@@ -32,6 +33,7 @@
         <jackson.annotation.version>2.21</jackson.annotation.version>
         <jackson.core.version>2.21.4</jackson.core.version>
         <retrofit.version>3.0.0</retrofit.version>
+        <kotlinx.coroutines.version>1.11.0</kotlinx.coroutines.version>
         <jspecify.version>1.0.0</jspecify.version>
         <junit.jupiter.version>6.0.0</junit.jupiter.version>
         <mockito.core.version>5.20.0</mockito.core.version>
@@ -71,6 +73,16 @@
             <artifactId>converter-jackson</artifactId>
             <version>${retrofit.version}</version>
             <scope>compile</scope>
+        </dependency>
+        <!--Required for GraalVM native-image builds.
+        Retrofit 3.0 references coroutine-related classes during reachability analysis,
+        even when only synchronous Call<T> APIs are used. Without this dependency,
+        native-image compilation fails with missing kotlinx.coroutines classes -->
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core-jvm</artifactId>
+            <version>${kotlinx.coroutines.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.jspecify</groupId>
