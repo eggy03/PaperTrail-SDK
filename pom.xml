@@ -30,13 +30,13 @@
         <sonar.organization>eggy03</sonar.organization>
 
         <!-- dependencies version -->
-        <jackson.annotation.version>2.21</jackson.annotation.version>
-        <jackson.core.version>2.21.4</jackson.core.version>
+        <jackson.annotation.version>2.22</jackson.annotation.version>
+        <jackson.core.version>2.22.1</jackson.core.version>
         <retrofit.version>3.0.0</retrofit.version>
         <kotlinx.coroutines.version>1.11.0</kotlinx.coroutines.version>
-        <jspecify.version>1.0.0</jspecify.version>
-        <junit.jupiter.version>6.0.0</junit.jupiter.version>
-        <mockito.core.version>5.20.0</mockito.core.version>
+        <jspecify.version>1.0.1</jspecify.version>
+        <junit.jupiter.version>6.1.3</junit.jupiter.version>
+        <mockito.core.version>5.23.0</mockito.core.version>
         <assertj.core.version>3.27.7</assertj.core.version>
 
         <!-- plugins version -->
@@ -45,9 +45,9 @@
         <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
         <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
         <sign.maven.plugin.version>1.1.0</sign.maven.plugin.version>
-        <central.publishing.maven.plugin.version>0.10.0</central.publishing.maven.plugin.version>
-        <jacoco.maven.plugin.version>0.8.14</jacoco.maven.plugin.version>
-        <slf4j.api.version>2.0.17</slf4j.api.version>
+        <central.publishing.maven.plugin.version>0.11.0</central.publishing.maven.plugin.version>
+        <jacoco.maven.plugin.version>0.8.15</jacoco.maven.plugin.version>
+        <slf4j.api.version>2.0.18</slf4j.api.version>
     </properties>
 
     <dependencies>
