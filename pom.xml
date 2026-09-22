@@ -46,7 +46,6 @@
         <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
         <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
         <central.publishing.maven.plugin.version>0.11.0</central.publishing.maven.plugin.version>
-        <jacoco.maven.plugin.version>0.8.15</jacoco.maven.plugin.version>
         <slf4j.api.version>2.0.19</slf4j.api.version>
     </properties>
 
@@ -243,33 +242,6 @@
                     <publishingServerId>central</publishingServerId>
                     <checksums>all</checksums>
                 </configuration>
-            </plugin>
-
-            <!-- Generate coverage report -->
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.maven.plugin.version}</version>
-                <configuration>
-                    <excludes>
-                        <exclude>io/github/eggy03/papertrail/sdk/entity/**/*</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>prepare-agent</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
         </plugins>
