@@ -30,8 +30,7 @@
         <sonar.organization>eggy03</sonar.organization>
 
         <!-- dependencies version -->
-        <jackson.annotation.version>2.22</jackson.annotation.version>
-        <jackson.core.version>2.22.2</jackson.core.version>
+        <jackson.version>2.22.2</jackson.version>
         <retrofit.version>3.0.0</retrofit.version>
         <kotlinx.coroutines.version>1.11.0</kotlinx.coroutines.version>
         <jspecify.version>1.0.1</jspecify.version>
@@ -49,28 +48,44 @@
         <slf4j.api.version>2.0.19</slf4j.api.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.squareup.retrofit2</groupId>
+                <artifactId>retrofit-bom</artifactId>
+                <version>${retrofit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.annotation.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>${jackson.core.version}</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.retrofit2</groupId>
             <artifactId>retrofit</artifactId>
-            <version>${retrofit.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.squareup.retrofit2</groupId>
             <artifactId>converter-jackson</artifactId>
-            <version>${retrofit.version}</version>
             <scope>compile</scope>
         </dependency>
         <!--Required for GraalVM native-image builds.
